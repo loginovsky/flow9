@@ -266,7 +266,13 @@ export {
 	setSessionKeyValue(key : string, value : string) -> bool;
 	getSessionKeyValue(key : string, value : string) -> string;
 	removeSessionKeyValue(key : string) -> void;
+
+	// In JS on some targets like Safari on iOS, the complex object with many strings occupies huge amount of memory
+	// this function travers object and replaces duplicates
+	native cleanupDuplicates : (object : ?) -> ? = Native.cleanupDuplicates;
 }
+
+cleanupDuplicates(object : ?) -> ? { object }
 
 // Only works in the C++ runner when debugging or profiling
 native callstack2string : io (native) -> string = Native.callstack2string;

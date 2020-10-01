@@ -1935,4 +1935,29 @@ var fns = tasks.map(function(c, i, a) {
 async.parallel(fns, function(err, results) { cb(results) });");
 		#end
 	}
+
+	public static function cleanupDuplicates(obj : Dynamic) : Dynamic {
+		cleanupDuplicatesInternal(untyped __js__("{}"), obj);
+		return obj;
+	}
+
+	private static function cleanupDuplicatesInternal(acc : Dynamic, obj : Dynamic) : Void {
+		#if js
+		untyped __js__("
+			for (key in obj) {
+				if (obj.hasOwnProperty(key)){
+					value = obj[key];
+					cachedValue = acc[value];
+					if (cachedValue !== undefined) {
+						obj[key] = cachedValue;
+					} else {
+						acc[value] = value;
+						if (!(value instanceof String || typeof value === \"string\") && value instanceof Object) {
+							Native.cleanupDuplicatesInternal(acc, value);
+						}
+					}
+				}
+			}");
+		#end
+	}
 }
