@@ -1941,23 +1941,39 @@ async.parallel(fns, function(err, results) { cb(results) });");
 		return obj;
 	}
 
-	private static function cleanupDuplicatesInternal(acc : Dynamic, obj : Dynamic) : Void {
+	private static function cleanupDuplicatesInternal(acc : Dynamic, o : Dynamic) : Void {
 		#if js
 		untyped __js__("
-			for (key in obj) {
-				if (obj.hasOwnProperty(key)){
-					value = obj[key];
-					cachedValue = acc[value];
-					if (cachedValue !== undefined) {
-						obj[key] = cachedValue;
-					} else {
-						acc[value] = value;
-						if (!(value instanceof String || typeof value === \"string\") && value instanceof Object) {
-							Native.cleanupDuplicatesInternal(acc, value);
-						}
-					}
+		var ent = Object.entries(o);
+		for (var i = 0; i < ent.length; i++) {
+			var keyvalue = ent[i];
+			var key = keyvalue[0];
+			if (o[key] === Object(o[key])) {
+				// OK, we go recursive
+				// console.log('Recursive call');
+				Native.cleanupDuplicatesInternal(acc, o[key]);
+			}
+			var value = keyvalue[1];
+			if (typeof value =='string') {
+				if (acc[value] !== undefined) {
+					// Rewrite to use the same object
+					// console.log('Overwrite key value by cache value');
+					// console.log('  o:          ' + JSON.stringify(o));
+					// console.log('  acc:        ' + JSON.stringify(acc));
+					// console.log('  key:        ' + JSON.stringify(key));
+					// console.log('  value:      ' + JSON.stringify(value));
+					// console.log('  acc[value]: ' + JSON.stringify(acc[value]));
+					o[key] = acc[value];
+				} else {
+					// console.log('Put into cache');
+					// console.log('  value:      ' + JSON.stringify(value));
+					// console.log('  acc BEFORE: ' + JSON.stringify(acc));
+					acc[value] = value;
+					// console.log('  acc AFTER:  ' + JSON.stringify(acc));
+					// console.log('');
 				}
-			}");
+			}
+		}");
 		#end
 	}
 }
